@@ -1,0 +1,286 @@
+@import url('https://fonts.googleapis.com/css2?family=Mulish&display=swap');
+@import url('../fonts/Quicksand.css');
+
+body {
+    /** font-family: 'Quicksand', sans-serif; */
+    font-family: 'Mulish', sans-serif;
+    font-weight: 500;
+}
+.landing-container {
+    margin: auto;
+    width: 600px;
+}
+.center-h {
+    text-align: center;
+    display: block;
+}
+.landing-neg-space {
+    margin-top: 20vh;
+    transition: all .5s;
+}
+.landing-hidden {
+    margin-top: 53px;
+}
+#main-logo {
+    cursor: pointer;
+    height: 55px;
+    transition: all .5s;
+}
+.landing-hidden #main-logo {
+    height: 40px;
+}
+.keywords {
+    margin-left: 52px;
+}
+.suggestions {
+    margin-left: 42px;
+}
+.textbox-dest {
+    padding-left: 50px;
+    background: url('../drawables/textbox_dest.svg');
+    background-color: #F0F0F0;
+    border: none;
+    border-color: transparent;
+    border-radius: 13px;
+    height: 51px;
+    width: 465px;
+    font-size: 1.4em;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position-y: center;
+}
+.textbox-prefhotel {
+    padding-left: 50px;
+    background: url('../drawables/textbox_prefhotel.svg');
+    background-color: #F0F0F0;
+    border: none;
+    border-color: transparent;
+    border-radius: 13px;
+    height: 51px;
+    width: 465px;
+    font-size: 1.4em;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position-y: center;
+}
+.textbox-prefrestaurant {
+    padding-left: 50px;
+    background: url('../drawables/textbox_prefrestaurant.svg');
+    background-color: #F0F0F0;
+    border: none;
+    border-color: transparent;
+    border-radius: 13px;
+    height: 51px;
+    width: 465px;
+    font-size: 1.4em;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position-y: center;
+}
+.suggestion {
+    box-sizing: border-box;
+    border-radius: 21px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 15px;
+    padding-right: 15px;
+    margin-right: 15px;
+    cursor: pointer;
+}
+.sg-purple {
+    background: rgba(231, 49, 125, 0.19);
+    border: 2px solid rgba(231, 49, 125, 0.85);
+    color: rgba(231, 49, 125, 0.85);
+}
+.sg-purple:hover {
+    background: rgba(231, 49, 125, 0.85);
+    border: 2px solid transparent;
+    color: white;
+}
+.sg-orange {
+    background: rgba(231, 136, 49, 0.19);
+    border: 2px solid rgba(231, 136, 49, 0.85);
+    color: rgba(231, 136, 49, 0.85);
+}
+.sg-orange:hover {
+    background: rgba(231, 136, 49, 0.85);
+    border: 2px solid transparent;
+    color: white;
+}
+a {
+    text-decoration: none;
+}
+
+#search-text-bg {
+    height: 69px;
+    line-height: 69px;
+    width: 1px;
+    opacity: 1;
+    transition: all .5s;
+    background: #CCF5B8;
+    color: rgba(0, 0, 0, 0.49);
+    font-size: 20px;
+    margin-right: -34.5px;
+    border-top-left-radius: 69px;
+    border-bottom-left-radius: 69px;
+    /*z-index: -1;*/
+    padding-left: 25px;
+    cursor:pointer;
+    pointer-events: auto;
+}
+#search-button:hover #search-text-bg {
+    width: 105px;
+    line-height: 69px;
+    margin-right: -34.5px;
+}
+#search-text {
+    margin: 0;
+    opacity: 0;
+    font-size: 10px;
+    transition: all .37s ease-out;
+}
+#search-button:hover #search-text {
+    opacity: 1;
+    font-size: 22px;
+}
+#page-zero {
+    transition: all .35s;
+    opacity: 1;
+}
+.landing-hidden #page-zero {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.results-page {
+    opacity: 0;
+    transition: all .5s ease-in;
+}
+.results-shown .results-page {
+    opacity: 1;
+}
+.actionbar-back {
+    position: absolute;
+    width: 18px;
+    height: 29px;
+    left: 63px;
+    top: 63px;
+    background: url('../drawables/actionbar_back.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0;
+    transition: all .5s ease-in;
+}
+.results-shown .actionbar-back {
+    opacity: 1;
+}
+.actionbar-info {
+    position: absolute;
+    width: 9px;
+    height: 25px;
+    right: 67px;
+    top: 65px;
+    background: url('../drawables/actionbar_info.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0;
+    transition: all .5s ease-in;
+}
+.results-shown .actionbar-info {
+    opacity: 1;
+}
+/**@media screen and (max-width: 600px) {
+    .landing-container {
+        width: 100vw;
+    }
+}*/
+
+@media all and (max-width: 768px) {
+    .landing-neg-space {
+        margin-top: 4em !important;
+    }
+    .landing-container {
+        width: 100%;
+    }
+    .textbox-dest {
+        width: calc(100% - 2.8em);
+        padding-left: 2.1em;
+        height: 2em;
+        border-radius: 0.6em;
+    }
+    .textbox-prefhotel {
+        width: calc(100% - 2.8em);
+        padding-left: 2.1em;
+        height: 2em;
+        border-radius: 0.6em;
+    }
+    .textbox-prefrestaurant {
+        width: calc(100% - 2.8em);
+        padding-left: 2.1em;
+        height: 2em;
+        border-radius: 0.6em;
+    }
+    label {
+        margin-left: calc(2em + 14px) !important;
+    }
+    .keywords {
+        margin-left: 8px;
+    }
+    .suggestions {
+        margin-left: 2px;
+    }
+    #search-button {
+        margin-right: 2px !important;
+    }
+    .actionbar-back {
+        top: calc(2em + 10px);
+        left: 34px;
+    }
+    .actionbar-info {
+        top: calc(2em + 10px);
+        right: 36px;
+    }
+    .landing-hidden #main-logo {
+        height: 2.3em;
+    }
+    .landing-hidden {
+        margin-top: 2em !important;
+    }
+}
+
+
+
+
+.autocomplete {
+    /*the container must be positioned relative:*/
+    position: relative;
+  }
+
+
+.autocomplete-items {
+    position: absolute;
+    border: 1px solid #d4d4d4;
+    border-bottom: none;
+    border-top: none;
+    z-index: 99;
+    /*position the autocomplete items to be the same width as the container:*/
+    top: 100%;
+    left: 0;
+    right: 0;
+  }
+  .autocomplete-items div {
+    padding: 10px;
+    cursor: pointer;
+    background-color: #fff; 
+    border-bottom: 1px solid #d4d4d4; 
+  }
+  .autocomplete-items div:hover {
+    /*when hovering an item:*/
+    background-color: #e9e9e9; 
+  }
+  .autocomplete-active {
+    /*when navigating through the items using the arrow keys:*/
+    background-color: DodgerBlue !important; 
+    color: #ffffff; 
+  }
+

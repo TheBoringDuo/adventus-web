@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<head>
+    <link rel="stylesheet" href="css/style.css?v=5">
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.9, user-scalable=no">
+    <title>Adventus</title>
+</head>
+<body>
+    <div class="landing-container landing-neg-space" id="landing-container">
+        <div class="center-h" style="margin-bottom: 50px;">
+            <img src="drawables/adventus.svg" id="main-logo" onclick="hideResults(); return false;" />
+        </div>
+
+        <div id="page-zero">
+            <label for="textbox-dest" style="margin-left: 92px; font-size: 1.1em; color: #0000007d;">
+                your next desired destination:
+            </label>
+            <div class="center-h autocomplete" style="margin-top: 5px;">
+                <input type="text" id="textbox-dest" class="textbox-dest" autocomplete="off" />
+            </div>
+
+            <div style="margin-bottom: -22px;" class="keywords">
+                <img src="drawables/sliders-h-solid.svg" style="margin-top: 50px; vertical-align:middle; margin-bottom: 46px;" />
+                <p style="font-size: 2em; vertical-align:middle; display:inline; margin-left: 5px; color: #000000b0;">keywords</p>
+            </div>
+            <div style="margin-bottom: 32px;">
+                <label for="textbox-prefhotel" style="margin-left: 92px; font-size: 1.1em; color: #0000007d;">
+                    for the hotels:
+                </label>
+                <div class="center-h" style="margin-top: 5px; margin-bottom: 15px;">
+                    <input type="text" id="textbox-prefhotel" class="textbox-prefhotel" />
+                </div>
+                <div style="display: flex;" class="suggestions">
+                    <div class="suggestion sg-purple">price</div>
+                    <div class="suggestion sg-purple">modern</div>
+                    <div class="suggestion sg-purple">vintage</div>
+                    <div class="suggestion sg-purple">cozy</div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 32px;">
+                <label for="textbox-prefrestaurant" style="margin-left: 92px; font-size: 1.1em; color: #0000007d;">
+                    for the restaurants:
+                </label>
+                <div class="center-h" style="margin-top: 5px; margin-bottom: 15px;">
+                    <input type="text" id="textbox-prefrestaurant" class="textbox-prefrestaurant" />
+                </div>
+                <div style="display: flex;" class="suggestions">
+                    <div class="suggestion sg-orange">italian</div>
+                    <div class="suggestion sg-orange">wine</div>
+                    <div class="suggestion sg-orange">price</div>
+                    <div class="suggestion sg-orange">vintage</div>
+                </div>
+            </div>
+
+            <div style="display: flex; float: right; margin-right: 40px; margin-bottom: 55px;" id="search-button">
+                <div id="search-text-bg" onclick="displayResults();"><p id="search-text">search</p></div>
+                <a href="#" onclick="displayResults(); return false;"><img src="drawables/fab_send.svg" id="search-icon" /></a>
+            </div>
+        </div>
+    </div>
+
+    <div id="results-page">
+        <a href="#" class="actionbar-back" onclick="hideResults(); return false;"></a>
+        <a href="#" class="actionbar-info" onclick="return false;"></a>
+    </div>
+
+    <script defer>
+        let params = new URLSearchParams(location.search);
+        
+        var locationQuery = params.get("q");
+        var hotelPrefs = params.get("hotels");
+        var restaurantPrefs = params.get("restaurants");
+
+        $('#textbox-dest').val(locationQuery);
+        $('#textbox-prefhotel').val(hotelPrefs);
+        $('#textbox-prefrestaurant').val(restaurantPrefs);
+
+        if (locationQuery != null && locationQuery.length > 0) displayResults();
+
+        function setQueryVars() {
+            locationQuery = $('#textbox-dest').val();
+            hotelPrefs = $('#textbox-prefhotel').val();
+            restaurantPrefs = $('#textbox-prefrestaurant').val();
+        }
+        function displayResults() {
+            $('#landing-container').addClass('landing-hidden');
+            $('#results-page').addClass('results-shown');
+            setTimeout(function () {
+                $('#landing-hidden').css('display', 'none');
+            }, 500);
+
+            setQueryVars();
+            window.history.pushState('data', "Adventus", 'index.html?q=' + locationQuery + '&hotels=' + hotelPrefs + '&restaurants=' + restaurantPrefs);
+        }
+        function hideResults() {
+            $('#landing-container').removeClass('landing-hidden');
+            $('#results-page').removeClass('results-shown');
+            setTimeout(function () {
+                $('#landing-hidden').css('display', 'block');
+            }, 500);
+            // window.history.pushState('data', "Adventus", 'index.html');
+        }
+        $('.sg-purple').click(function() {
+            var newHotelPrefs = $('#textbox-prefhotel').val();
+            if (newHotelPrefs.length > 0 && !newHotelPrefs.endsWith(" ")) newHotelPrefs += " ";
+            newHotelPrefs += $(this).text();
+            $('#textbox-prefhotel').val(newHotelPrefs);
+        });
+        $('.sg-orange').click(function() {
+            var newRestaurantPrefs = $('#textbox-prefrestaurant').val();
+            if (newRestaurantPrefs.length > 0 && !newRestaurantPrefs.endsWith(" ")) newRestaurantPrefs += " ";
+            newRestaurantPrefs += $(this).text();
+            $('#textbox-prefrestaurant').val(newRestaurantPrefs);
+        });
+
+
+
+
+
+        
+
+    </script>
+</body>
