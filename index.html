@@ -64,9 +64,14 @@
     <div id="results-page">
         <a href="#" class="actionbar-back" onclick="hideResults(); return false;"></a>
         <a href="#" class="actionbar-info" onclick="return false;"></a>
+        <div id="results-contents">
+            <p id="location-label"></p>
+        </div>
     </div>
 
     <script defer>
+        var serverUrl = 'http://localhost:8000/';
+
         let params = new URLSearchParams(location.search);
         
         var locationQuery = params.get("q");
@@ -80,9 +85,10 @@
         if (locationQuery != null && locationQuery.length > 0) displayResults();
 
         function setQueryVars() {
-            locationQuery = $('#textbox-dest').val();
-            hotelPrefs = $('#textbox-prefhotel').val();
-            restaurantPrefs = $('#textbox-prefrestaurant').val();
+            locationQuery = $('#textbox-dest').val().replaceAll('/', ' ').replaceAll('\\', ' ');
+            $('#location-label').text(locationQuery);
+            hotelPrefs = $('#textbox-prefhotel').val().replaceAll('/', ' ').replaceAll('\\', ' ');
+            restaurantPrefs = $('#textbox-prefrestaurant').val().replaceAll('/', ' ').replaceAll('\\', ' ');
         }
         function displayResults() {
             $('#landing-container').addClass('landing-hidden');
@@ -93,12 +99,34 @@
 
             setQueryVars();
             window.history.pushState('data', "Adventus", 'index.html?q=' + locationQuery + '&hotels=' + hotelPrefs + '&restaurants=' + restaurantPrefs);
+
+            var locationSplit = locationQuery.split(',').map(function (s) {return s.trim()});
+            var city = locationSplit.slice(0, -1).join(',');
+            var country = locationSplit.slice(-1);
+            
+            $.getJSON(serverUrl + 'findhotels/' + country + '/' + city + '/' + hotelPrefs + '/?format=json', function(data) {
+                for (let hotel of data) {
+                    let starRatingHtml = '<div class="obj-star-ratings">';
+                    for (let i = 0; i < hotel['starRating']; i++)
+                    {
+                        starRatingHtml += '<img src="drawables/star_icon.svg" style="height: 15px; margin-right: 20px;">';
+                    }
+                    if (hotel['starRating'] == null) 
+                    {
+                        starRatingHtml += '<img src="drawables/star_icon.svg" style="height: 15px; margin-right: 20px; opacity: 0;">';
+                    }
+                    starRatingHtml += '</div>';
+                    let htmlDom = '<a href="' + hotel['bookingLink'] + '" target="_blank"><div class="result-card"><img src="' + hotel['linkToBookingPic'] + '" class="obj-thumb"><div class="obj-description"><p style="font-weight: bold; font-size: 1.6em; text-overflow: ellipsis; overflow: hidden; width: auto; height: 1.3em; white-space: nowrap;">' + hotel['name'] + '</p>' + starRatingHtml + '<img src="drawables/booking_redirect_button' + ((/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) ? '_mac.png' : '.svg') + '" height="23px"></div></div></a>';
+                    $('#results-contents').append(htmlDom);
+                }
+            });
         }
         function hideResults() {
             $('#landing-container').removeClass('landing-hidden');
             $('#results-page').removeClass('results-shown');
             setTimeout(function () {
                 $('#landing-hidden').css('display', 'block');
+                $('#results-contents').html('<p id="location-label"></p>');
             }, 500);
             // window.history.pushState('data', "Adventus", 'index.html');
         }
@@ -114,12 +142,11 @@
             newRestaurantPrefs += $(this).text();
             $('#textbox-prefrestaurant').val(newRestaurantPrefs);
         });
-
-
-
-
-
-        
+        $('input[type="text"]').keydown(function(event) {
+            if (event.keyCode === 13) {
+                displayResults();
+            }
+        });
 
     </script>
 </body>

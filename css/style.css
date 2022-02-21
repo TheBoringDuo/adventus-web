@@ -160,7 +160,7 @@ a {
     opacity: 1;
 }
 .actionbar-back {
-    position: absolute;
+    position: fixed;
     width: 18px;
     height: 29px;
     left: 63px;
@@ -189,6 +189,72 @@ a {
 .results-shown .actionbar-info {
     opacity: 1;
 }
+#results-contents {
+    opacity: 0;
+    transition: opacity .5s ease-in;
+    width: calc(100% - 175px);
+    margin-top: calc(-185px - 16rem);
+    margin-left: 118px;
+}
+#results-contents a:link {
+    color: #000;
+}
+#results-contents a:visited {
+    color: rgb(126, 126, 126);
+}
+#results-contents a:hover {
+    color: #73a836;
+}
+#results-contents a:active {
+    color: #557c28;
+}
+#location-label {
+    width: 60vh;
+
+    position: fixed;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 24px; /*TODO: UPDATE!!!*/
+    line-height: 30px; /*TODO: UPDATE!!!*/
+    text-align: center;
+
+    color: rgba(0, 0, 0, 0.32);
+
+    transform: rotate(-90deg);
+    left: 63px;
+    top: 50vh;
+    margin-left: calc(5px - 30vh);
+
+    transition: all .5s, width 0s;
+}
+.results-shown #results-contents {
+    opacity: 1;
+}
+
+.result-card {
+    background: #FFFFFF;
+    box-shadow: 0px 0px 21px 2px rgba(0, 0, 0, 0.06);
+    border-radius: 18px;
+    height: 12.5rem;
+    margin-left: 0px;
+    margin-bottom: 45px;
+}
+.obj-thumb {
+    border-top-left-radius: 18px;
+    border-bottom-left-radius: 18px;
+    height: 100%;
+    width: auto;
+    background-color: #bbb;
+}
+.obj-description {
+    margin-top: -12.5rem;
+    margin-left: 216px;
+    margin-right: 16px;
+}
+.obj-star-ratings {
+    margin-top: -0.8rem;
+    margin-bottom: 2.7em;
+}
 /**@media screen and (max-width: 600px) {
     .landing-container {
         width: 100vw;
@@ -196,6 +262,16 @@ a {
 }*/
 
 @media all and (max-width: 768px) {
+    .result-card {
+        height: 12.5rem;
+        margin-left: 0px;
+        margin-bottom: 30px;
+    }
+    #results-contents {
+        margin: 0;
+        margin-top: calc(-185px - 16rem);
+        width: 100%;
+    }
     .landing-neg-space {
         margin-top: 4em !important;
     }
@@ -233,18 +309,47 @@ a {
         margin-right: 2px !important;
     }
     .actionbar-back {
+        /* position: absolute; */
         top: calc(2em + 10px);
         left: 34px;
+
+        background-color: #fff;
+        border-radius: 200px;
+        margin-top: -8px;
+        margin-left: -13px;
+        padding-top: 13px;
+        padding-right: 13px;
+        padding-left: 13px;
+        background-position: center;
+        background-position-x: 11px;
+        background-size: initial;
     }
     .actionbar-info {
         top: calc(2em + 10px);
         right: 36px;
+    }
+    #location-label {
+        position: absolute;
+        transform: rotate(0deg);
+        top: 63px;
+        left: 0px;
+        width: 100vw;
+        margin-left: 0px;
     }
     .landing-hidden #main-logo {
         height: 2.3em;
     }
     .landing-hidden {
         margin-top: 2em !important;
+    }
+    .obj-thumb {
+        border-top-left-radius: 18px;
+        border-bottom-left-radius: 18px;
+    }
+    .obj-description {
+        margin-top: -200px;
+        margin-left: 216px;
+        margin-right: 16px;
     }
 }
 
