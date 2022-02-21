@@ -7,6 +7,16 @@
     <title>Adventus</title>
 </head>
 <body>
+    <a href="#" class="actionbar-info" onclick="return false;"></a>
+    <div class="user-menu">
+        <!-- Welcome, <strong>Nicola Nicolov</strong>! -->
+        <input id="login-email" type="email" placeholder="E-mail" class="login-input">
+        <input id="login-password" type="password" placeholder="Password" class="login-input">
+        <button onclick="login();" class="login-button" style="margin-right: 4px;">Login</button>
+        <button onclick="alert('register: todo');" class="login-button" style="margin-left: 7.5px;">Register</button>
+        <div style="text-align: center; width: 100%; margin-top: 4px; color: rgb(104, 104, 104);"><a href="#" style="font-size: 0.8em;">Forgot Password?</a></div>
+    </div>
+
     <div class="landing-container landing-neg-space" id="landing-container">
         <div class="center-h" style="margin-bottom: 50px;">
             <img src="drawables/adventus.svg" id="main-logo" onclick="hideResults(); return false;" />
@@ -63,7 +73,6 @@
 
     <div id="results-page">
         <a href="#" class="actionbar-back" onclick="hideResults(); return false;"></a>
-        <a href="#" class="actionbar-info" onclick="return false;"></a>
         <div id="results-contents">
             <p id="location-label"></p>
         </div>
@@ -83,6 +92,8 @@
         $('#textbox-prefrestaurant').val(restaurantPrefs);
 
         if (locationQuery != null && locationQuery.length > 0) displayResults();
+
+        authenticate();
 
         function setQueryVars() {
             locationQuery = $('#textbox-dest').val().replaceAll('/', ' ').replaceAll('\\', ' ');
@@ -120,6 +131,7 @@
                     $('#results-contents').append(htmlDom);
                 }
             });
+            // TODO: IF ERROR
         }
         function hideResults() {
             $('#landing-container').removeClass('landing-hidden');
@@ -129,6 +141,50 @@
                 $('#results-contents').html('<p id="location-label"></p>');
             }, 500);
             // window.history.pushState('data', "Adventus", 'index.html');
+        }
+        function login() {
+            let email = $('#login-email').val();
+            let password = $('#login-password').val();
+
+            $.post(serverUrl + 'api/token/', { 'email': email, 'password': password }, function(data, textStatus) {
+                setCookie('user_tkn', data['access'], 7);
+                authenticate(false);
+            }, "json").fail(function (xhr, status, error) {
+                alert(JSON.parse(xhr.responseText).detail);
+            });
+        }
+        function authenticate(mandatoryCheck = true) {
+            if (mandatoryCheck) {
+                $.ajax({url: serverUrl + 'test/', type: 'GET', data: {}, beforeSend: function (xhr) {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + getCookie('user_tkn'));
+                }, success: function(data, textStatus) {
+                    $('.user-menu').html('Welcome, <b>Nicola Nicolov</b>!<button onclick="setCookie(\'user_tkn\', \'\', 0); location.reload();" class="login-button">Log out</button>');
+                }, fail: function(xhr, status, error) {
+                    authenticated = false;
+                    return;
+                }});
+            }
+            if (mandatoryCheck == false) $('.user-menu').html('Welcome, <b>Nicola Nicolov</b>!<button onclick="setCookie(\'user_tkn\', \'\', 0); location.reload();" class="login-button">Log out</button>');
+        }
+        function setCookie(cname, cvalue, exdays) {
+            const d = new Date();
+            d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+            let expires = "expires="+d.toUTCString();
+            document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+        }
+        function getCookie(cname) {
+            let name = cname + "=";
+            let ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return null;
         }
         $('.sg-purple').click(function() {
             var newHotelPrefs = $('#textbox-prefhotel').val();
