@@ -2,13 +2,14 @@
 <head>
     <link rel="stylesheet" href="css/style.css?v=5">
     <script src="js/jquery-3.6.0.min.js"></script>
+    <script src="js/adventus-common.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=0.9, user-scalable=no">
     <title>Adventus</title>
 </head>
 <body>
-    <a href="#" class="actionbar-info" onclick="return false;"></a>
-    <div class="user-menu">
+    <a href="#" class="actionbar-info" onclick="$('.user-menu').toggleClass('element-hidden'); return false;"></a>
+    <div class="user-menu element-hidden">
         <!-- Welcome, <strong>Nicola Nicolov</strong>! -->
         <input id="login-email" type="email" placeholder="E-mail" class="login-input">
         <input id="login-password" type="password" placeholder="Password" class="login-input">
@@ -75,6 +76,7 @@
         <a href="#" class="actionbar-back" onclick="hideResults(); return false;"></a>
         <div id="results-contents">
             <p id="location-label"></p>
+            <!-- TODO: Loading indicator -->
         </div>
     </div>
 
@@ -166,26 +168,6 @@
             }
             if (mandatoryCheck == false) $('.user-menu').html('Welcome, <b>Nicola Nicolov</b>!<button onclick="setCookie(\'user_tkn\', \'\', 0); location.reload();" class="login-button">Log out</button>');
         }
-        function setCookie(cname, cvalue, exdays) {
-            const d = new Date();
-            d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-            let expires = "expires="+d.toUTCString();
-            document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
-        }
-        function getCookie(cname) {
-            let name = cname + "=";
-            let ca = document.cookie.split(';');
-            for (let i = 0; i < ca.length; i++) {
-                let c = ca[i];
-                while (c.charAt(0) == ' ') {
-                    c = c.substring(1);
-                }
-                if (c.indexOf(name) == 0) {
-                    return c.substring(name.length, c.length);
-                }
-            }
-            return null;
-        }
         $('.sg-purple').click(function() {
             var newHotelPrefs = $('#textbox-prefhotel').val();
             if (newHotelPrefs.length > 0 && !newHotelPrefs.endsWith(" ")) newHotelPrefs += " ";
@@ -198,9 +180,14 @@
             newRestaurantPrefs += $(this).text();
             $('#textbox-prefrestaurant').val(newRestaurantPrefs);
         });
-        $('input[type="text"]').keydown(function(event) {
+        $('#page-zero').keydown(function(event) {
             if (event.keyCode === 13) {
                 displayResults();
+            }
+        });
+        $('.user-menu').keydown(function(event) {
+            if (event.keyCode === 13) {
+                login();
             }
         });
 
