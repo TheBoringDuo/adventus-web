@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <head>
-    <link rel="stylesheet" href="css/style.css?v=5">
+    <link rel="stylesheet" href="css/style.css?v=11">
+    <link rel="icon" href="drawables/favicon.png">
+    <link rel="manifest" href="js/manifest.json?v=3">
+    <link rel="apple-touch-icon" href="drawables/ios-favicon.png">
     <script src="js/jquery-3.6.0.min.js"></script>
-    <script src="js/adventus-common.js"></script>
+    <script src="js/adventus-common.js?v=2"></script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=0.9, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
     <title>Adventus</title>
 </head>
 <body>
-    <a href="#" class="actionbar-info" onclick="$('.user-menu').toggleClass('element-hidden'); return false;"></a>
-    <div class="user-menu element-hidden">
-        <!-- Welcome, <strong>Nicola Nicolov</strong>! -->
+    <a href="#" id="actionbar-info" class="actionbar-info" onclick="$('.user-menu').toggleClass('element-hidden'); $('.cover-main-content').toggleClass('element-visible'); return false;"></a>
+    <div class="cover-main-content" onclick="$('#user-menu').addClass('element-hidden'); $('.cover-main-content').removeClass('element-visible');"></div>
+
+    <div class="user-menu element-hidden" id="user-menu">
         <input id="login-email" type="email" placeholder="E-mail" class="login-input">
         <input id="login-password" type="password" placeholder="Password" class="login-input">
         <button onclick="login();" class="login-button" style="margin-right: 4px;">Login</button>
-        <button onclick="alert('register: todo');" class="login-button" style="margin-left: 7.5px;">Register</button>
-        <div style="text-align: center; width: 100%; margin-top: 4px; color: rgb(104, 104, 104);"><a href="#" style="font-size: 0.8em;">Forgot Password?</a></div>
+        <button onclick="location.href='/register';" class="login-button" style="margin-left: 7.5px;">Register</button>
+        <div style="text-align: center; width: 100%; margin-top: 4px; color: rgb(104, 104, 104);"><a href="/forgot_password" style="font-size: 0.8em;">Forgot Password?</a></div>
     </div>
 
     <div class="landing-container landing-neg-space" id="landing-container">
@@ -76,13 +80,14 @@
         <a href="#" class="actionbar-back" onclick="hideResults(); return false;"></a>
         <div id="results-contents">
             <p id="location-label"></p>
-            <!-- TODO: Loading indicator -->
+            <div id="loading-indicator">
+                <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+                <p style="margin-bottom: 17.5px" id="loading-text">Comparing the best rated hotels for your desired destination...</p>
+            </div>
         </div>
     </div>
 
     <script defer>
-        var serverUrl = 'http://localhost:8000/';
-
         let params = new URLSearchParams(location.search);
         
         var locationQuery = params.get("q");
@@ -103,12 +108,18 @@
             hotelPrefs = $('#textbox-prefhotel').val().replaceAll('/', ' ').replaceAll('\\', ' ');
             restaurantPrefs = $('#textbox-prefrestaurant').val().replaceAll('/', ' ').replaceAll('\\', ' ');
         }
+
+        var resultsFound = false;
+        var timeoutError;
         function displayResults() {
             $('#landing-container').addClass('landing-hidden');
             $('#results-page').addClass('results-shown');
             setTimeout(function () {
                 $('#landing-hidden').css('display', 'none');
             }, 500);
+            setTimeout(function () {
+                $('#search-button').css('display', 'none');
+            }, 370);
 
             setQueryVars();
             window.history.pushState('data', "Adventus", 'index.html?q=' + locationQuery + '&hotels=' + hotelPrefs + '&restaurants=' + restaurantPrefs);
@@ -116,31 +127,74 @@
             var locationSplit = locationQuery.split(',').map(function (s) {return s.trim()});
             var city = locationSplit.slice(0, -1).join(',');
             var country = locationSplit.slice(-1);
+            resultsFound = false;
+
+            timeoutError = setTimeout(function() {
+                if (resultsFound == false) {
+                    $('#loading-indicator').addClass('element-hidden');
+                    setTimeout(function() {
+                        $('#results-contents').append('<p class="empty-text">No results found. Try again with another search query.</p>');
+                    }, 300);
+                }
+            }, 10000);
             
             $.getJSON(serverUrl + 'findhotels/' + country + '/' + city + '/' + hotelPrefs + '/?format=json', function(data) {
-                for (let hotel of data) {
-                    let starRatingHtml = '<div class="obj-star-ratings">';
-                    for (let i = 0; i < hotel['starRating']; i++)
-                    {
-                        starRatingHtml += '<img src="drawables/star_icon.svg" style="height: 15px; margin-right: 20px;">';
-                    }
-                    if (hotel['starRating'] == null) 
-                    {
-                        starRatingHtml += '<img src="drawables/star_icon.svg" style="height: 15px; margin-right: 20px; opacity: 0;">';
-                    }
-                    starRatingHtml += '</div>';
-                    let htmlDom = '<a href="' + hotel['bookingLink'] + '" target="_blank"><div class="result-card"><img src="' + hotel['linkToBookingPic'] + '" class="obj-thumb"><div class="obj-description"><p style="font-weight: bold; font-size: 1.6em; text-overflow: ellipsis; overflow: hidden; width: auto; height: 1.3em; white-space: nowrap;">' + hotel['name'] + '</p>' + starRatingHtml + '<img src="drawables/booking_redirect_button' + ((/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) ? '_mac.png' : '.svg') + '" height="23px"></div></div></a>';
-                    $('#results-contents').append(htmlDom);
+                if (data === "There is no such country") displayResultsAlt();
+                else {
+                    $('#loading-indicator').addClass('element-hidden');
+                    clearTimeout(timeoutError);
+                    setTimeout(function() {
+                        for (let hotel of data) {
+                            resultsFound = true;
+                            let starRatingHtml = '<div class="obj-star-ratings">';
+                            for (let i = 0; i < hotel['starRating']; i++)
+                            {
+                                starRatingHtml += '<img src="drawables/star_icon.svg" style="height: 15px; margin-right: 20px;">';
+                            }
+                            if (hotel['starRating'] == null) 
+                            {
+                                starRatingHtml += '<img src="drawables/star_icon.svg" style="height: 15px; margin-right: 20px; opacity: 0;">';
+                            }
+                            starRatingHtml += '</div>';
+                            let htmlDom = '<a href="' + hotel['bookingLink'] + '" target="_blank"><div class="result-card"><img src="' + hotel['linkToBookingPic'] + '" class="obj-thumb"><div class="obj-description"><p style="font-weight: bold; font-size: 1.6em; text-overflow: ellipsis; overflow: hidden; width: auto; height: 1.3em; white-space: nowrap;">' + hotel['name'] + '</p>' + starRatingHtml + '<a href="#" class="like-button" onclick="likeHotel(' + hotel['id'] + '); return false;"><img src="drawables/heart-' + (favHotels.includes(hotel['id']) ? 'on' : 'off') + '.svg" id="like_img_' + hotel['id'] + '"></a><img src="drawables/booking_redirect_button_mac.png?v=2" height="23px"></div></div></a>';
+                            $('#results-contents').append(htmlDom);
+                        }
+                    }, 300);
                 }
+            }).fail(function() {displayResultsAlt();});
+        }
+        function displayResultsAlt()
+        {
+            $.getJSON(serverUrl + 'findhotels/customsearch/' + locationQuery + '/' + hotelPrefs + '/?format=json', function(data) {
+                $('#loading-indicator').addClass('element-hidden');
+                clearTimeout(timeoutError);
+                setTimeout(function() {
+                    for (let hotel of data) {
+                        resultsFound = true;
+                        let starRatingHtml = '<div class="obj-star-ratings">';
+                        for (let i = 0; i < hotel['starRating']; i++)
+                        {
+                            starRatingHtml += '<img src="drawables/star_icon.svg" style="height: 15px; margin-right: 20px;">';
+                        }
+                        if (hotel['starRating'] == null) 
+                        {
+                            starRatingHtml += '<img src="drawables/star_icon.svg" style="height: 15px; margin-right: 20px; opacity: 0;">';
+                        }
+                        starRatingHtml += '</div>';
+                        let htmlDom = '<a href="' + hotel['bookingLink'] + '" target="_blank"><div class="result-card"><img src="' + hotel['linkToBookingPic'] + '" class="obj-thumb"><div class="obj-description"><p style="font-weight: bold; font-size: 1.6em; text-overflow: ellipsis; overflow: hidden; width: auto; height: 1.3em; white-space: nowrap;">' + hotel['name'] + '</p>' + starRatingHtml + '<a href="#" class="like-button" onclick="likeHotel(' + hotel['id'] + '); return false;"><img src="drawables/heart-' + (favHotels.includes(hotel['id']) ? 'on' : 'off') + '.svg" id="like_img_' + hotel['id'] + '"></a><img src="drawables/booking_redirect_button_mac.png?v=2" height="23px"></div></div></a>';
+                        $('#results-contents').append(htmlDom);
+                    }
+                }, 300);
             });
-            // TODO: IF ERROR
         }
         function hideResults() {
             $('#landing-container').removeClass('landing-hidden');
             $('#results-page').removeClass('results-shown');
+            $('#loading-indicator').removeClass('element-hidden');
+            $('#search-button').css('display', 'flex');
             setTimeout(function () {
                 $('#landing-hidden').css('display', 'block');
-                $('#results-contents').html('<p id="location-label"></p>');
+                $('#results-contents').html('<p id="location-label"></p><div id="loading-indicator"><div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div><p style="margin-bottom: 17.5px" id="loading-text">Comparing the best rated hotels for your desired destination...</p></div>');
             }, 500);
             // window.history.pushState('data', "Adventus", 'index.html');
         }
@@ -150,23 +204,58 @@
 
             $.post(serverUrl + 'api/token/', { 'email': email, 'password': password }, function(data, textStatus) {
                 setCookie('user_tkn', data['access'], 7);
-                authenticate(false);
+                authenticate();
             }, "json").fail(function (xhr, status, error) {
                 alert(JSON.parse(xhr.responseText).detail);
             });
         }
+        
+        var favHotels = [];
         function authenticate(mandatoryCheck = true) {
             if (mandatoryCheck) {
-                $.ajax({url: serverUrl + 'test/', type: 'GET', data: {}, beforeSend: function (xhr) {
+                $.ajax({url: serverUrl + 'profile/', type: 'GET', data: {}, beforeSend: function (xhr) {
                     xhr.setRequestHeader('Authorization', 'Bearer ' + getCookie('user_tkn'));
                 }, success: function(data, textStatus) {
-                    $('.user-menu').html('Welcome, <b>Nicola Nicolov</b>!<button onclick="setCookie(\'user_tkn\', \'\', 0); location.reload();" class="login-button">Log out</button>');
+                    $('.user-menu').html('Welcome, <b>' + data['first_name'] + ' ' + data['last_name'] + '</b>!<button onclick="setCookie(\'user_tkn\', \'\', 0); location.reload();" class="login-button" style="display: block;">Log out</button>');
+                    setCookie('is_business', data['isBusinessClient'], 7);
+                    setCookie('user_first_name', data['first_name'], 7);
+                    setCookie('user_last_name', data['last_name'], 7);
+                    $.ajax({url: serverUrl + 'favourite_hotels/', type: 'GET', data: {}, beforeSend: function (xhr) {
+                        xhr.setRequestHeader('Authorization', 'Bearer ' + getCookie('user_tkn'));
+                    }, success: function(data, textStatus) {
+                        for (let hotel of data) {
+                            favHotels.push(hotel['id']);
+                        }
+                        // localStorage.setItem("favourite_hotels", JSON.stringify(favHotels));
+                    }});
                 }, fail: function(xhr, status, error) {
                     authenticated = false;
                     return;
                 }});
             }
-            if (mandatoryCheck == false) $('.user-menu').html('Welcome, <b>Nicola Nicolov</b>!<button onclick="setCookie(\'user_tkn\', \'\', 0); location.reload();" class="login-button">Log out</button>');
+            if (mandatoryCheck == false) $('.user-menu').html('Welcome, <b>' + getCookie('user_first_name') + ' ' + getCookie('user_last_name') + '</b>!<button onclick="setCookie(\'user_tkn\', \'\', 0); location.reload();" class="login-button" style="display: block;">Log out</button>');
+        }
+        function likeHotel(id) {
+            if (favHotels.includes(id)) {
+                $.ajax({url: serverUrl + 'remove_from_favourites/', type: 'POST', data: { 'obj_id': id }, beforeSend: function (xhr) {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + getCookie('user_tkn'));
+                }, success: function(data, textStatus) {
+                    $('#like_img_' + id).attr('src', 'drawables/heart-off.svg');
+                    favHotels = favHotels.filter(e => e !== id);
+                }, fail: function (xhr, status, error) {
+                    alert(JSON.parse(xhr.responseText).detail);
+                }});
+            }
+            else {
+                $.ajax({url: serverUrl + 'add_to_favourites/', type: 'POST', data: { 'obj_id': id }, beforeSend: function (xhr) {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + getCookie('user_tkn'));
+                }, success: function(data, textStatus) {
+                    $('#like_img_' + id).attr('src', 'drawables/heart-on.svg');
+                    favHotels.push(id);
+                }, fail: function (xhr, status, error) {
+                    alert(JSON.parse(xhr.responseText).detail);
+                }});
+            }
         }
         $('.sg-purple').click(function() {
             var newHotelPrefs = $('#textbox-prefhotel').val();
@@ -188,6 +277,21 @@
         $('.user-menu').keydown(function(event) {
             if (event.keyCode === 13) {
                 login();
+            }
+        });
+        window.addEventListener('mousedown', function(e){   
+            if (!(document.getElementById('user-menu').contains(e.target) || document.getElementById('actionbar-info').contains(e.target)) && !($('#user-menu').hasClass('element-hidden'))) {
+                $('#user-menu').addClass('element-hidden');
+                $('.cover-main-content').removeClass('element-visible');
+            }
+        });
+        window.addEventListener('touchend', function(e){   
+            if (!(document.getElementById('user-menu').contains(e.target) || document.getElementById('actionbar-info').contains(e.target)) && !($('#user-menu').hasClass('element-hidden'))) {
+                $('#user-menu').addClass('element-hidden');
+                $('.cover-main-content').removeClass('element-visible');
+            }
+            if (document.getElementById('search-button').contains(e.target)) {
+                displayResults();
             }
         });
 
