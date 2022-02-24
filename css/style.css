@@ -7,6 +7,19 @@ body {
     font-weight: 500;
     overflow-y: scroll;
 }
+button,
+textarea,
+input,
+select,
+a{
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
 .landing-container {
     margin: auto;
     width: 600px;
@@ -289,6 +302,18 @@ a {
     z-index: 5;
     transition: visibility 0s, opacity 0.2s ease-in;
 }
+.user-menu-link {
+    display: inline-flex;
+    align-items: center;
+    height: 2.3em;
+    width: calc(100% - 8px);
+    padding-left: 8px;
+    transition: background-color .2s ease-in, border-radius .2s ease-in;
+}
+.user-menu-link:hover {
+    background-color: #CCF5B8;
+    border-radius: 8px;
+}
 .login-input {
     background: #f0f0f0;
     border-radius: 10px;
@@ -311,7 +336,7 @@ a {
     height: 2em;
     border-style: solid;
     font-size: 1em;
-    margin-top: 4px;
+    margin-top: calc(96px - 3em);
     cursor: pointer;
     transition: background-color .1s ease-in, visibility 0s, opacity 0.2s ease-in;
 }

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<head>
+    <link rel="stylesheet" href="css/style.css?v=14">
+    <link rel="icon" href="drawables/favicon.png">
+    <link rel="manifest" href="/manifest.json?v=5">
+    <link rel="apple-touch-icon" href="drawables/ios-favicon.png">
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <script src="js/adventus-common.js?v=3"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
+    <meta http-equiv="cache-control" content="max-age=0" />
+    <meta http-equiv="cache-control" content="no-store" />
+    <meta http-equiv="expires" content="-1" />
+    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <title>Adventus</title>
+</head>
+<body>
+    <a href="#" class="actionbar-back" onclick="history.back(); return false;" style="opacity: 1; display: block;"></a>
+    <a href="#" id="actionbar-info" class="actionbar-info" onclick="$('.user-menu').toggleClass('element-hidden'); $('.cover-main-content').toggleClass('element-visible'); return false;"></a>
+    <div class="cover-main-content" onclick="$('#user-menu').addClass('element-hidden'); $('.cover-main-content').removeClass('element-visible');"></div>
+    <div class="user-menu element-hidden" id="user-menu"></div>
+
+    <div class="landing-hidden landing-neg-space" id="landing-container">
+        <div class="center-h" style="margin-bottom: 50px;">
+            <img src="drawables/adventus.svg" id="main-logo" onclick="location.href='/'; return false;" />
+        </div>
+
+        <p style="text-align: center; color: rgba(0, 0, 0, 0.32); font-size: 1.5em;">Favorites</p>
+
+        <div id="results-page">
+            <div id="results-contents" style="margin-top: 0;">
+            </div>
+        </div>
+
+    </div>
+
+    <script defer>
+        authenticate();
+
+        function login() {
+            let email = $('#login-email').val();
+            let password = $('#login-password').val();
+
+            $.post(serverUrl + 'api/token/', { 'email': email, 'password': password }, function(data, textStatus) {
+                setCookie('user_tkn', data['access'], 7);
+                authenticate();
+            }, "json").fail(function (xhr, status, error) {
+                alert(JSON.parse(xhr.responseText).detail);
+            });
+        }
+        
+        var favHotels = [];
+        var resultsFound = false;
+        function authenticate() {
+            resultsFound = false;
+            $('#results-page').addClass('results-shown');
+            $.ajax({url: serverUrl + 'profile/', type: 'GET', data: {}, beforeSend: function (xhr) {
+                xhr.setRequestHeader('Authorization', 'Bearer ' + getCookie('user_tkn'));
+            }, success: function(data, textStatus) {
+                $('.user-menu').html(generateUserMenu(data['first_name'], data['last_name']));
+                $.ajax({url: serverUrl + 'favourite_hotels/', type: 'GET', data: {}, beforeSend: function (xhr) {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + getCookie('user_tkn'));
+                }, success: function(data, textStatus) {
+                    for (let hotel of data) {
+                        favHotels.push(hotel['id']);
+                        resultsFound = true;
+                        let starRatingHtml = '<div class="obj-star-ratings">';
+                        for (let i = 0; i < hotel['starRating']; i++)
+                        {
+                            starRatingHtml += '<img src="drawables/star_icon.svg" style="height: 15px; margin-right: 20px;">';
+                        }
+                        if (hotel['starRating'] == null) 
+                        {
+                            starRatingHtml += '<img src="drawables/star_icon.svg" style="height: 15px; margin-right: 20px; opacity: 0;">';
+                        }
+                        starRatingHtml += '</div>';
+                        let htmlDom = '<a href="' + hotel['bookingLink'] + '" target="_blank"><div class="result-card"><img src="' + hotel['linkToBookingPic'] + '" class="obj-thumb"><div class="obj-description"><p style="font-weight: bold; font-size: 1.6em; text-overflow: ellipsis; overflow: hidden; width: auto; height: 1.3em; white-space: nowrap;">' + hotel['name'] + '</p>' + starRatingHtml + '<a href="#" class="like-button" onclick="likeHotel(' + hotel['id'] + '); return false;"><img src="drawables/heart-' + (favHotels.includes(hotel['id']) ? 'on' : 'off') + '.svg" id="like_img_' + hotel['id'] + '"></a><img src="drawables/booking_redirect_button_mac.png?v=2" height="23px"></div></div></a>';
+                        $('#results-contents').append(htmlDom);
+                    }
+                    if (resultsFound == false) {
+                        $('#results-contents').append('<p style="text-align: center; color: rgba(0, 0, 0, 0.32); font-size: 1.5em;">No favorites found</p>');
+                    }
+                }});
+            }, fail: function(xhr, status, error) {
+                location.href = '/';
+            }});
+        }
+        function likeHotel(id) {
+            if (favHotels.includes(id)) {
+                $.ajax({url: serverUrl + 'remove_from_favourites/', type: 'POST', data: { 'obj_id': id }, beforeSend: function (xhr) {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + getCookie('user_tkn'));
+                }, success: function(data, textStatus) {
+                    $('#like_img_' + id).attr('src', 'drawables/heart-off.svg');
+                    favHotels = favHotels.filter(e => e !== id);
+                }, fail: function (xhr, status, error) {
+                    alert(JSON.parse(xhr.responseText).detail);
+                }});
+            }
+            else {
+                $.ajax({url: serverUrl + 'add_to_favourites/', type: 'POST', data: { 'obj_id': id }, beforeSend: function (xhr) {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + getCookie('user_tkn'));
+                }, success: function(data, textStatus) {
+                    $('#like_img_' + id).attr('src', 'drawables/heart-on.svg');
+                    favHotels.push(id);
+                }, fail: function (xhr, status, error) {
+                    alert(JSON.parse(xhr.responseText).detail);
+                }});
+            }
+        }
+
+    </script>
+</body>

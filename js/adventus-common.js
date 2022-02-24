@@ -19,3 +19,6 @@ function getCookie(cname) {
     }
     return null;
 }
+function generateUserMenu(first_name, last_name) {
+    return '<p style="margin-top: 0;">Welcome, <b>' + first_name + ' ' + last_name + '</b>!</p><a href="/favorites" class="user-menu-link" onclick="$(\'#user-menu\').addClass(\'element-hidden\'); $(\'.cover-main-content\').removeClass(\'element-visible\');"><img src="/drawables/heart-off.svg" style="height: 1.2em;"><p style="display: inline-flex; margin-left: 6px;">Favorites</p></a><button onclick="setCookie(\'user_tkn\', \'\', 0); location.reload();" class="login-button" style="display: block;">Log out</button>';
+}
