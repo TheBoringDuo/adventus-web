@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <head>
-    <link rel="stylesheet" href="css/style.css?v=15">
+    <link rel="stylesheet" href="css/style.css?v=18">
     <link rel="icon" href="drawables/favicon.png">
     <link rel="manifest" href="/manifest.json?v=5">
     <link rel="apple-touch-icon" href="drawables/ios-favicon.png">
     <script src="js/jquery-3.6.0.min.js"></script>
-    <script src="js/adventus-common.js?v=3"></script>
+    <script src="js/adventus-common.js?v=4"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
     <meta http-equiv="cache-control" content="max-age=0" />
@@ -85,10 +85,15 @@
         <a href="#" class="actionbar-back" onclick="hideResults(); return false;"></a>
         <div id="results-contents">
             <p id="location-label"></p>
+            <div class="category-tabs">
+                <a href="#" id="tab-hotels" class="category-tab tab-selected" onclick="loadTab('hotels'); return false;">HOTELS</a>
+                <a href="#" id="tab-restaurants" class="category-tab" onclick="loadTab('restaurants'); return false;">RESTAURANTS</a>
+            </div>
             <div id="loading-indicator">
                 <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
                 <p style="margin-bottom: 17.5px" id="loading-text">Comparing the best rated hotels for your desired destination...</p>
             </div>
+            <div id="object-container"></div>
         </div>
     </div>
 
@@ -114,9 +119,15 @@
             restaurantPrefs = $('#textbox-prefrestaurant').val().replaceAll('/', ' ').replaceAll('\\', ' ');
         }
 
+        var hotelsDom = '';
+        var restaurantsDom = '';
         var resultsFound = false;
+        var shouldLoadRestaurants = false;
         var timeoutError;
         function displayResults() {
+            hotelsDom = '';
+            restaurantsDom = '';
+
             $('#landing-container').addClass('landing-hidden');
             $('#results-page').addClass('results-shown');
             setTimeout(function () {
@@ -161,12 +172,29 @@
                                 starRatingHtml += '<img src="drawables/star_icon.svg" style="height: 15px; margin-right: 20px; opacity: 0;">';
                             }
                             starRatingHtml += '</div>';
-                            let htmlDom = '<a href="' + hotel['bookingLink'] + '" target="_blank"><div class="result-card"><img src="' + hotel['linkToBookingPic'] + '" class="obj-thumb"><div class="obj-description"><p style="font-weight: bold; font-size: 1.6em; text-overflow: ellipsis; overflow: hidden; width: auto; height: 1.3em; white-space: nowrap;">' + hotel['name'] + '</p>' + starRatingHtml + '<a href="#" class="like-button" onclick="likeHotel(' + hotel['id'] + '); return false;"><img src="drawables/heart-' + (favHotels.includes(hotel['id']) ? 'on' : 'off') + '.svg" id="like_img_' + hotel['id'] + '"></a><img src="drawables/booking_redirect_button_mac.png?v=2" height="23px"></div></div></a>';
-                            $('#results-contents').append(htmlDom);
+                            let picUrl = hotel['linkToBookingPic'];
+                            if (picUrl === "") picUrl = 'drawables/star_icon.svg" style="opacity: 0;';
+                            let htmlDom = '<a href="' + hotel['bookingLink'] + '" target="_blank"><div class="result-card"><img src="' + picUrl + '" class="obj-thumb"><div class="obj-description"><p style="font-weight: bold; font-size: 1.6em; text-overflow: ellipsis; overflow: hidden; width: auto; height: 1.3em; white-space: nowrap;">' + hotel['name'] + '</p>' + starRatingHtml + '<a href="#" class="like-button" onclick="likeHotel(' + hotel['id'] + '); return false;"><img src="drawables/heart-' + (favHotels.includes(hotel['id']) ? 'on' : 'off') + '.svg" id="like_img_' + hotel['id'] + '"></a><img src="drawables/booking_redirect_button_mac.png?v=2" height="23px"></div></div></a>';
+                            if (shouldLoadRestaurants == false) $('#results-contents').append(htmlDom);
+                            hotelsDom += htmlDom;
                         }
                     }, 300);
                 }
             }).fail(function() {displayResultsAlt();});
+
+            $.getJSON(serverUrl + 'findrestaurants/customsearch/' + locationQuery + '/' + restaurantPrefs + '/?format=json', function(data) {
+                for (let restaurant of data) {
+                    resultsFound = true;
+                    let starRatingHtml = '<div class="obj-star-ratings">';
+                    starRatingHtml += '<img src="drawables/star_icon.svg" style="height: 15px; margin-right: 20px; opacity: 0;">';
+                    starRatingHtml += '</div>';
+                    let picUrl = restaurant['linkToTripadvisorPic'];
+                    if (picUrl === "") picUrl = 'drawables/star_icon.svg" style="opacity: 0;';
+                    let htmlDom = '<a href="' + restaurant['tripadvisorLink'] + '" target="_blank"><div class="result-card"><img src="' + picUrl + '" class="obj-thumb"><div class="obj-description"><p style="font-weight: bold; font-size: 1.6em; text-overflow: ellipsis; overflow: hidden; width: auto; height: 1.3em; white-space: nowrap;">' + restaurant['name'] + '</p>' + starRatingHtml + '<a href="#" class="like-button" onclick="likeRestaurant(' + restaurant['id'] + '); return false;"><img src="drawables/heart-' + (favRestaurants.includes(restaurant['id']) ? 'on' : 'off') + '.svg" id="like_img_' + restaurant['id'] + '"></a><img src="drawables/tripadvisor_redirect_button.png" height="23px"></div></div></a>';
+                    restaurantsDom += htmlDom;
+                }
+                if (shouldLoadRestaurants == true) $('#object-container').append(restaurantsDom);
+            });
         }
         function displayResultsAlt()
         {
@@ -186,11 +214,31 @@
                             starRatingHtml += '<img src="drawables/star_icon.svg" style="height: 15px; margin-right: 20px; opacity: 0;">';
                         }
                         starRatingHtml += '</div>';
-                        let htmlDom = '<a href="' + hotel['bookingLink'] + '" target="_blank"><div class="result-card"><img src="' + hotel['linkToBookingPic'] + '" class="obj-thumb"><div class="obj-description"><p style="font-weight: bold; font-size: 1.6em; text-overflow: ellipsis; overflow: hidden; width: auto; height: 1.3em; white-space: nowrap;">' + hotel['name'] + '</p>' + starRatingHtml + '<a href="#" class="like-button" onclick="likeHotel(' + hotel['id'] + '); return false;"><img src="drawables/heart-' + (favHotels.includes(hotel['id']) ? 'on' : 'off') + '.svg" id="like_img_' + hotel['id'] + '"></a><img src="drawables/booking_redirect_button_mac.png?v=2" height="23px"></div></div></a>';
-                        $('#results-contents').append(htmlDom);
+                        let picUrl = hotel['linkToBookingPic'];
+                        if (picUrl === "") picUrl = 'drawables/star_icon.svg" style="opacity: 0;';
+                        let htmlDom = '<a href="' + hotel['bookingLink'] + '" target="_blank"><div class="result-card"><img src="' + picUrl + '" class="obj-thumb"><div class="obj-description"><p style="font-weight: bold; font-size: 1.6em; text-overflow: ellipsis; overflow: hidden; width: auto; height: 1.3em; white-space: nowrap;">' + hotel['name'] + '</p>' + starRatingHtml + '<a href="#" class="like-button" onclick="likeHotel(' + hotel['id'] + '); return false;"><img src="drawables/heart-' + (favHotels.includes(hotel['id']) ? 'on' : 'off') + '.svg" id="like_img_' + hotel['id'] + '"></a><img src="drawables/booking_redirect_button_mac.png?v=2" height="23px"></div></div></a>';
+                        if (shouldLoadRestaurants == false) $('#object-container').append(htmlDom);
+                        hotelsDom += htmlDom;
                     }
                 }, 300);
             });
+        }
+        function loadTab(selectedTab) {
+            //$('#results-contents').html('<p id="location-label"></p><div class="category-tabs"><a href="#" id="tab-hotels" class="category-tab" onclick="loadTab(\'hotels\'); return false;">HOTELS</a><a href="#" id="tab-restaurants" class="category-tab" onclick="loadTab(\'restaurants\'); return false;">RESTAURANTS</a></div><div id="loading-indicator" class="element-hidden"><div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div><p style="margin-bottom: 17.5px" id="loading-text">Comparing the best rated hotels for your desired destination...</p></div>');
+            $('#location-label').text(locationQuery);
+            if (selectedTab == 'hotels') {
+                $('#tab-hotels').addClass('tab-selected');
+                $('#tab-restaurants').removeClass('tab-selected');
+                $('#object-container').html(hotelsDom);
+                shouldLoadRestaurants = false;
+            }
+            else if (selectedTab == 'restaurants') {
+                $('#tab-hotels').removeClass('tab-selected');
+                $('#tab-restaurants').addClass('tab-selected');
+                $('#object-container').html(restaurantsDom);
+                shouldLoadRestaurants = true;
+            }
+
         }
         function hideResults() {
             $('#landing-container').removeClass('landing-hidden');
@@ -199,7 +247,7 @@
             $('#search-button').css('display', 'flex');
             setTimeout(function () {
                 $('#landing-hidden').css('display', 'block');
-                $('#results-contents').html('<p id="location-label"></p><div id="loading-indicator"><div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div><p style="margin-bottom: 17.5px" id="loading-text">Comparing the best rated hotels for your desired destination...</p></div>');
+                $('#results-contents').html('<p id="location-label"></p><div class="category-tabs"><a href="#" id="tab-hotels" class="category-tab tab-selected" onclick="loadTab(\'hotels\'); return false;">HOTELS</a><a href="#" id="tab-restaurants" class="category-tab" onclick="loadTab(\'restaurants\'); return false;">RESTAURANTS</a></div><div id="loading-indicator"><div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div><p style="margin-bottom: 17.5px" id="loading-text">Comparing the best rated hotels for your desired destination...</p></div><div id="object-container"></div>');
             }, 500);
             // window.history.pushState('data', "Adventus", 'index.html');
         }
@@ -216,6 +264,7 @@
         }
         
         var favHotels = [];
+        var favRestaurants = [];
         function authenticate(mandatoryCheck = true) {
             if (mandatoryCheck) {
                 $.ajax({url: serverUrl + 'profile/', type: 'GET', data: {}, beforeSend: function (xhr) {

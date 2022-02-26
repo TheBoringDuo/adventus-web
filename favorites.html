@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <head>
-    <link rel="stylesheet" href="css/style.css?v=14">
+    <link rel="stylesheet" href="css/style.css?v=17">
     <link rel="icon" href="drawables/favicon.png">
     <link rel="manifest" href="/manifest.json?v=5">
     <link rel="apple-touch-icon" href="drawables/ios-favicon.png">
     <script src="js/jquery-3.6.0.min.js"></script>
-    <script src="js/adventus-common.js?v=3"></script>
+    <script src="js/adventus-common.js?v=4"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
     <meta http-equiv="cache-control" content="max-age=0" />
@@ -75,7 +75,9 @@
                             starRatingHtml += '<img src="drawables/star_icon.svg" style="height: 15px; margin-right: 20px; opacity: 0;">';
                         }
                         starRatingHtml += '</div>';
-                        let htmlDom = '<a href="' + hotel['bookingLink'] + '" target="_blank"><div class="result-card"><img src="' + hotel['linkToBookingPic'] + '" class="obj-thumb"><div class="obj-description"><p style="font-weight: bold; font-size: 1.6em; text-overflow: ellipsis; overflow: hidden; width: auto; height: 1.3em; white-space: nowrap;">' + hotel['name'] + '</p>' + starRatingHtml + '<a href="#" class="like-button" onclick="likeHotel(' + hotel['id'] + '); return false;"><img src="drawables/heart-' + (favHotels.includes(hotel['id']) ? 'on' : 'off') + '.svg" id="like_img_' + hotel['id'] + '"></a><img src="drawables/booking_redirect_button_mac.png?v=2" height="23px"></div></div></a>';
+                        let picUrl = hotel['linkToBookingPic'];
+                        if (picUrl === "") picUrl = 'drawables/star_icon.svg" style="opacity: 0;';
+                        let htmlDom = '<a href="' + hotel['bookingLink'] + '" target="_blank"><div class="result-card"><img src="' + picUrl + '" class="obj-thumb"><div class="obj-description"><p style="font-weight: bold; font-size: 1.6em; text-overflow: ellipsis; overflow: hidden; width: auto; height: 1.3em; white-space: nowrap;">' + hotel['name'] + '</p>' + starRatingHtml + '<a href="#" class="like-button" onclick="likeHotel(' + hotel['id'] + '); return false;"><img src="drawables/heart-' + (favHotels.includes(hotel['id']) ? 'on' : 'off') + '.svg" id="like_img_' + hotel['id'] + '"></a><img src="drawables/booking_redirect_button_mac.png?v=2" height="23px"></div></div></a>';
                         $('#results-contents').append(htmlDom);
                     }
                     if (resultsFound == false) {
