@@ -53,7 +53,8 @@
                     location.href = '/';
                 });
             }, "json").fail(function (xhr, status, error) {
-                alert(JSON.parse(xhr.responseText).detail);
+                if (typeof JSON.parse(xhr.responseText).detail !== 'undefined') alert(JSON.parse(xhr.responseText).detail);
+                else alert('Make sure you fill out the fields correctly.');
             });
         }
         function authenticate() {

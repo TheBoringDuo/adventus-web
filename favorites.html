@@ -26,10 +26,15 @@
             <img src="drawables/adventus.svg" id="main-logo" onclick="location.href='/'; return false;" />
         </div>
 
-        <p style="text-align: center; color: rgba(0, 0, 0, 0.32); font-size: 1.5em;">Favorites</p>
 
         <div id="results-page">
-            <div id="results-contents" style="margin-top: 0;">
+            <div id="results-contents" style="margin-top: 0; ">
+                <p id="location-label">Favorites</p>
+                <div class="category-tabs">
+                    <a href="#" id="tab-hotels" class="category-tab tab-selected" onclick="loadTab('hotels'); return false;">HOTELS</a>
+                    <a href="#" id="tab-restaurants" class="category-tab" onclick="loadTab('restaurants'); return false;">RESTAURANTS</a>
+                </div>
+                <div id="object-container" style="margin-top: 6.55em;"></div>
             </div>
         </div>
 
@@ -50,21 +55,25 @@
             });
         }
         
+        var hotelsDom = '';
+        var restaurantsDom = '';
         var favHotels = [];
-        var resultsFound = false;
+        var favRestaurants = [];
         function authenticate() {
-            resultsFound = false;
             $('#results-page').addClass('results-shown');
+
             $.ajax({url: serverUrl + 'profile/', type: 'GET', data: {}, beforeSend: function (xhr) {
                 xhr.setRequestHeader('Authorization', 'Bearer ' + getCookie('user_tkn'));
             }, success: function(data, textStatus) {
                 $('.user-menu').html(generateUserMenu(data['first_name'], data['last_name']));
+
+                let hotelsFound = false;
                 $.ajax({url: serverUrl + 'favourite_hotels/', type: 'GET', data: {}, beforeSend: function (xhr) {
                     xhr.setRequestHeader('Authorization', 'Bearer ' + getCookie('user_tkn'));
                 }, success: function(data, textStatus) {
                     for (let hotel of data) {
                         favHotels.push(hotel['id']);
-                        resultsFound = true;
+                        hotelsFound = true;
                         let starRatingHtml = '<div class="obj-star-ratings">';
                         for (let i = 0; i < hotel['starRating']; i++)
                         {
@@ -77,11 +86,37 @@
                         starRatingHtml += '</div>';
                         let picUrl = hotel['linkToBookingPic'];
                         if (picUrl === "") picUrl = 'drawables/star_icon.svg" style="opacity: 0;';
-                        let htmlDom = '<a href="' + hotel['bookingLink'] + '" target="_blank"><div class="result-card"><img src="' + picUrl + '" class="obj-thumb"><div class="obj-description"><p style="font-weight: bold; font-size: 1.6em; text-overflow: ellipsis; overflow: hidden; width: auto; height: 1.3em; white-space: nowrap;">' + hotel['name'] + '</p>' + starRatingHtml + '<a href="#" class="like-button" onclick="likeHotel(' + hotel['id'] + '); return false;"><img src="drawables/heart-' + (favHotels.includes(hotel['id']) ? 'on' : 'off') + '.svg" id="like_img_' + hotel['id'] + '"></a><img src="drawables/booking_redirect_button_mac.png?v=2" height="23px"></div></div></a>';
-                        $('#results-contents').append(htmlDom);
+                        hotelsDom += '<a href="' + hotel['bookingLink'] + '" target="_blank"><div class="result-card"><img src="' + picUrl + '" class="obj-thumb"><div class="obj-description"><p style="font-weight: bold; font-size: 1.6em; text-overflow: ellipsis; overflow: hidden; width: auto; height: 1.3em; white-space: nowrap;">' + hotel['name'] + '</p>' + starRatingHtml + '<a href="#" class="like-button" onclick="likeHotel(' + hotel['id'] + '); return false;"><img src="drawables/heart-' + (favHotels.includes(hotel['id']) ? 'on' : 'off') + '.svg" id="like_img_' + hotel['id'] + '"></a><img src="drawables/booking_redirect_button_mac.png?v=2" height="23px"></div></div></a>';
                     }
-                    if (resultsFound == false) {
-                        $('#results-contents').append('<p style="text-align: center; color: rgba(0, 0, 0, 0.32); font-size: 1.5em;">No favorites found</p>');
+                    if (hotelsFound == false) {
+                        hotelsDom.append('<p style="text-align: center; color: rgba(0, 0, 0, 0.32); font-size: 1.5em;">No favorite hotels found</p>');
+                    }
+                    $('#object-container').html(hotelsDom);
+                }});
+
+                let restaurantsFound = false;
+                $.ajax({url: serverUrl + 'favourite_restaurants/', type: 'GET', data: {}, beforeSend: function (xhr) {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + getCookie('user_tkn'));
+                }, success: function(data, textStatus) {
+                    for (let restaurant of data) {
+                        favRestaurants.push(restaurant['id']);
+                        restaurantsFound = true;
+                        let starRatingHtml = '<div class="obj-star-ratings">';
+                        for (let i = 0; i < restaurant['starRating']; i++)
+                        {
+                            starRatingHtml += '<img src="drawables/star_icon.svg" style="height: 15px; margin-right: 20px;">';
+                        }
+                        if (restaurant['starRating'] == null) 
+                        {
+                            starRatingHtml += '<img src="drawables/star_icon.svg" style="height: 15px; margin-right: 20px; opacity: 0;">';
+                        }
+                        starRatingHtml += '</div>';
+                        let picUrl = restaurant['linkToTripadvisorPic'];
+                        if (picUrl === "") picUrl = 'drawables/star_icon.svg" style="opacity: 0;';
+                        restaurantsDom += '<a href="' + restaurant['tripadvisorLink'] + '" target="_blank"><div class="result-card"><img src="' + picUrl + '" class="obj-thumb"><div class="obj-description"><p style="font-weight: bold; font-size: 1.6em; text-overflow: ellipsis; overflow: hidden; width: auto; height: 1.3em; white-space: nowrap;">' + restaurant['name'] + '</p>' + starRatingHtml + '<a href="#" class="like-button" onclick="likeHotel(' + restaurant['id'] + '); return false;"><img src="drawables/heart-' + (favRestaurants.includes(restaurant['id']) ? 'on' : 'off') + '.svg" id="like_img_' + restaurant['id'] + '"></a><img src="drawables/tripadvisor_redirect_button.png" height="23px"></div></div></a>';
+                    }
+                    if (restaurantsFound == false) {
+                        restaurantsDom.append('<p style="text-align: center; color: rgba(0, 0, 0, 0.32); font-size: 1.5em;">No favorite restaurants found</p>');
                     }
                 }});
             }, fail: function(xhr, status, error) {
@@ -109,6 +144,19 @@
                     alert(JSON.parse(xhr.responseText).detail);
                 }});
             }
+        }
+        function loadTab(selectedTab) {
+            if (selectedTab == 'hotels') {
+                $('#tab-hotels').addClass('tab-selected');
+                $('#tab-restaurants').removeClass('tab-selected');
+                $('#object-container').html(hotelsDom);
+            }
+            else if (selectedTab == 'restaurants') {
+                $('#tab-hotels').removeClass('tab-selected');
+                $('#tab-restaurants').addClass('tab-selected');
+                $('#object-container').html(restaurantsDom);
+            }
+
         }
 
     </script>
